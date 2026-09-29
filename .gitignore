@@ -1,0 +1,25 @@
+# Build & Binaries
+.build/
+*.app/
+*.o
+*.dylib
+*.swiftdoc
+*.swiftmodule
+
+# Python & Models
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+models/
+*.tar.bz2
+*.onnx
+
+# Temporary test artifacts
+test_*.py
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride

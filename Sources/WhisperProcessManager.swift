@@ -6,6 +6,7 @@ struct TranscribeMessage: Codable {
     let message: String?
     let text: String?
     let translation: String?
+    let url: String?
 }
 
 struct TranscriptItem: Identifiable, Equatable {
@@ -19,6 +20,7 @@ class WhisperProcessManager: ObservableObject {
     @Published var items: [TranscriptItem] = []
     @Published var statusMessage = "正在初始化 SenseVoice 引擎..."
     @Published var isEngineReady = false
+    @Published var remoteTunnelUrl: String? = nil
     
     private var process: Process?
     private var inputPipe: Pipe?
@@ -89,6 +91,10 @@ class WhisperProcessManager: ObservableObject {
                 case "stopped":
                     self.isRecording = false
                     if let m = msg.message { self.statusMessage = m }
+                case "tunnel_ready":
+                    if let u = msg.url {
+                        self.remoteTunnelUrl = u
+                    }
                 case "transcription":
                     if let text = msg.text, !text.isEmpty {
                         self.items.append(TranscriptItem(text: text, translation: msg.translation))

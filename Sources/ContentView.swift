@@ -82,22 +82,32 @@ struct ContentView: View {
                 .buttonStyle(.plain)
                 .help(isAlwaysOnTop ? "当前：始终置顶（点击取消）" : "当前：普通窗口（点击置顶）")
                 
-                // 手机画中画同步入口提示
-                Link(destination: URL(string: "http://192.168.1.23:8998")!) {
-                    HStack(spacing: 3) {
-                        Image(systemName: "iphone.radiowaves.left.and.right")
+                // 手机画中画同步入口（点击自动复制远程/本地链接）
+                Button(action: {
+                    let targetUrl = engine.remoteTunnelUrl ?? "http://192.168.1.23:8998"
+                    NSPasteboard.general.clearContents()
+                    NSPasteboard.general.setString(targetUrl, forType: .string)
+                    withAnimation {
+                        copiedNotice = true
+                    }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                        withAnimation { copiedNotice = false }
+                    }
+                }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: engine.remoteTunnelUrl != nil ? "globe" : "iphone.radiowaves.left.and.right")
                             .font(.system(size: 10))
-                        Text("手机悬浮")
+                        Text(engine.remoteTunnelUrl != nil ? "外网/4G已连接" : "手机悬浮")
                             .font(.system(size: 11))
                     }
                     .foregroundColor(.blue)
-                    .padding(.horizontal, 6)
+                    .padding(.horizontal, 7)
                     .padding(.vertical, 5)
                     .background(Color.blue.opacity(0.08))
                     .cornerRadius(6)
                 }
                 .buttonStyle(.plain)
-                .help("手机浏览器打开此链接，可将字幕作为画中画悬浮在手机任意界面上")
+                .help(engine.remoteTunnelUrl != nil ? "点击复制远程访问 HTTPS 网址（无需同 WiFi，4G/5G 均可随时访问）" : "点击复制局域网手机访问网址")
                 
                 Spacer()
                 
@@ -203,12 +213,18 @@ struct ContentView: View {
                 
                 Spacer()
                 
-                Text("📱 手机同步: 192.168.1.23:8998")
-                    .font(.system(size: 10))
-                    .foregroundColor(.secondary)
+                if let tunnel = engine.remoteTunnelUrl {
+                    Text("🌐 远程公网可用 (点击顶栏复制)")
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundColor(.blue)
+                } else {
+                    Text("📱 手机同步: 192.168.1.23:8998")
+                        .font(.system(size: 10))
+                        .foregroundColor(.secondary)
+                }
                 
                 if copiedNotice {
-                    Text("已复制!")
+                    Text("网址已复制!")
                         .font(.system(size: 10, weight: .medium))
                         .foregroundColor(.green)
                 }
@@ -218,7 +234,7 @@ struct ContentView: View {
         }
         .padding(.horizontal, 12)
         .padding(.bottom, 8)
-        .frame(minWidth: 460, minHeight: 300)
+        .frame(minWidth: 470, minHeight: 300)
         .background(VisualEffectBlur(material: .headerView, blendingMode: .behindWindow))
     }
     

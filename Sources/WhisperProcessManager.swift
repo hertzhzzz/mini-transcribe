@@ -5,12 +5,19 @@ struct TranscribeMessage: Codable {
     let type: String
     let message: String?
     let text: String?
+    let translation: String?
+}
+
+struct TranscriptItem: Identifiable, Equatable {
+    let id = UUID()
+    let text: String
+    let translation: String?
 }
 
 class WhisperProcessManager: ObservableObject {
     @Published var isRecording = false
-    @Published var transcript = ""
-    @Published var statusMessage = "正在初始化 Whisper 引擎..."
+    @Published var items: [TranscriptItem] = []
+    @Published var statusMessage = "正在初始化 SenseVoice 引擎..."
     @Published var isEngineReady = false
     
     private var process: Process?
@@ -84,11 +91,7 @@ class WhisperProcessManager: ObservableObject {
                     if let m = msg.message { self.statusMessage = m }
                 case "transcription":
                     if let text = msg.text, !text.isEmpty {
-                        if self.transcript.isEmpty {
-                            self.transcript = text
-                        } else {
-                            self.transcript += "\n" + text
-                        }
+                        self.items.append(TranscriptItem(text: text, translation: msg.translation))
                     }
                 case "error":
                     if let m = msg.message {
@@ -99,7 +102,7 @@ class WhisperProcessManager: ObservableObject {
                 }
             }
         } catch {
-            // Non-json debug lines
+            // Non-json
         }
     }
     
@@ -117,7 +120,7 @@ class WhisperProcessManager: ObservableObject {
     }
     
     func clearAll() {
-        transcript = ""
+        items.removeAll()
         statusMessage = "已清空内容"
     }
     
